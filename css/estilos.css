@@ -1,0 +1,173 @@
+* {
+  padding: 0;
+  margin: 0;
+  font-family: "Roboto", sans-serif;
+}
+/* estilos del formulario---------------- */
+.container__add {
+  width: 90%;
+  margin: 60px auto;
+}
+
+.container__title {
+  font-size: 1.9em;
+  text-align: center;
+  padding: 12px;
+  background: rgb(30, 100, 112);
+  color: #ededed;
+}
+
+.container__form {
+  background: #fff;
+  padding: 40px 20px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+form {
+  width: 50%;
+  margin: 30px auto;
+  padding: 50px 20px;
+  background-color: #ededed;
+  box-shadow: 0 0 20px #444;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+input {
+  width: 80%;
+  padding: 12px 6px;
+  margin: 12px auto;
+  font-size: 1.2rem;
+}
+
+.form__label {
+  width: 80%;
+  padding: 6px;
+  margin: 0 auto;
+  font-size: 1.2rem;
+}
+
+.form__label::after {
+  content: "";
+  display: block;
+  margin-left: 0;
+  height: 3px;
+  width: 0px;
+  background: transparent;
+  transition: width 0.5s ease, background-color 0.5s ease;
+}
+
+.form__label:hover::after {
+  width: 40%;
+  background: rgb(30, 100, 112);
+}
+
+input[type="submit"] {
+  background-color: #48e;
+  color: #fff;
+  width: calc(80% - 20px);
+  margin: 0 10%;
+  margin-top: 22px;
+  border: none;
+  cursor: pointer;
+  font-size: 1.3rem;
+}
+
+.ok {
+  text-align: center;
+  width: 100%;
+  padding: 12px;
+  background-color: #1e6;
+  color: #fff;
+}
+.bad {
+  text-align: center;
+  width: 100%;
+  padding: 12px;
+  background-color: #a22;
+  color: #fff;
+}
+
+/* estilos de galería de productos -----------------------*/
+
+.container__table {
+  width: 90%;
+  background: rgb(223, 223, 223);
+  margin: 50px auto;
+  box-shadow: 0 0 20px #444;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 70px;
+
+  position: relative;
+}
+
+.table__title {
+  grid-column-start: 1;
+  grid-column-end: 5;
+  background: #48e;
+  color: #ededed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+.table__header,
+.table__item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.table__header {
+  font-size: 1.2rem;
+  border-bottom: 1px solid #444;
+}
+
+.table__item {
+  font-size: 1rem;
+  padding: 12px;
+}
+
+/* sección editar --------------- */
+
+.title--edit {
+  position: absolute;
+  top: 16px;
+  right: 30%;
+  text-decoration: none;
+  color: #ededed;
+}
+
+.title--edit::after {
+  content: "";
+  display: block;
+  margin-left: 0;
+  height: 3px;
+  width: 0px;
+  background: transparent;
+  transition: width 0.5s ease, background-color 0.3s ease;
+}
+
+.title--edit:hover::after {
+  width: 100%;
+  background: #ededed;
+}
+
+.container__table--edit {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.table__title--edit {
+  grid-column-start: 1;
+  grid-column-end: 6;
+}
+
+/* estilos de carrito -----------------------*/
+
+.carrito-img{  
+  width: 30%;
+}
