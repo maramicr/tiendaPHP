@@ -1,3 +1,7 @@
+<?php
+include 'conexion.php';
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -7,7 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet" href="../css/estilos.css">
-    <title>Carrito</title>
+    <title>Carrito de compras</title>
     <!-- CSS only -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
     <link rel="stylesheet" href="../css/estilos.css">
@@ -16,74 +20,59 @@
 </head>
 
 <body>
-    <div class="container mt-3 text-center">
-        <h1 class="title">Carrito de compras</h1>
+    <div class="container mt-3">
+        <h1 class="title text-center">Productos seleccionados</h1>
         <div class="row">
             <div class="col-12">
-                <form method="POST" action="">
-                    <table class="table table-stripped">
-                        <thead class="thead-inverse">
+                <form method="POST">
+                    <table class="table table-striped">
+                        <thead>
                             <tr>
                                 <th>Nombre</th>
-                                <th>Detalle</th>
+                                <th>
+                                    <a href="catalogo_prod.php" class="btn btn-secondary">
+                                    <i class="fa fa-backward"></i>
+                                    </a>
+                                </th>
+                           <!-- <th>Detalle</th>
                                 <th>Imagen</th>
                                 <th>Precio</th>
-                                <th>Acción</th>
-                                <th><button type="submit" name="agregar" class="btn btn-primary">
-                                <i class="fa fa-cart-plus"></i>
-                                </button></th>
+                                <th>Acción</th> -->
                             </tr>
                         </thead>
                         <tbody>
                             <?php
-                            include 'conexion.php';
-                            $query = ("SELECT * FROM productos");
-                            $resultado = mysqli_query($conexion, $query) or die(mysqli_error($conexion));
-                            // creacion de cookies --------------
-                            if(isset($_REQUEST['producto'])){ 
-                            setcookie("producto", serialize($_REQUEST['producto']),time()+3000);
+                            $listaProductos = unserialize($_COOKIE['producto']);
+                            if(isset($_REQUEST['borrar'])){
+                                unset($listaProductos[$_REQUEST]['borrar']);
+                                setcookie('producto', serialize($listaProductos),time()+30000);
                             }
-                            while ($row = mysqli_fetch_assoc($resultado)){
-                                if(isset($_REQUEST['producto'])){
-                                $este = in_array($row['nombre'],$_REQUEST['producto']);
-                                }else{
-                                    $listaProducto=unserialize($_COOKIE['producto']);
-                                    $este = in_array($row['nombre'],$listaProducto);
-                                }
-                            
-                            ?> 
-                            <tr>
-                                <td><?php echo $row['nombre']; ?></td>
-                                <td><?php echo $row['detalle']; ?></td>
-                                <td><img src="<?php echo $row['imagen']; ?>" class="card-img-top carrito__img" alt="<?php echo $row['nombre']; ?>" style="width: 50%;"></td>
-                                <td><?php echo $row['precio']; ?></td>
-                                <td><input type="checkbox" name="producto[]" value="<?php echo $row['nombre']; ?>" <?php echo $este?"checked='checked'":" "; ?> ></td>
-
-                            </tr>
+                            foreach ($listaProductos as $key => $value) {
+                            ?>
+                                <tr>
+                                    <td><?php echo $value; ?></td>
+                                    <td>
+                                        <button type="submit" name="borrar" value="<?php echo $key; ?>" class="btn btn-danger">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
                             <?php
                             }
-                             ?>
-
+                            ?>
                         </tbody>
                     </table>
                 </form>
             </div>
-        
-        
 
+            <?php
+            if ($conexion->error != '') {
+                echo "Ocurrió un error al ejecutar la consulta: {$conexion->error}";
+            }
 
-
-
-
-
-        <?php
-        if ($conexion->error != '') {
-            echo "Ocurrió un error al ejecutar la consulta: {$conexion->error}";
-        }
-
-        echo $conexion->error;
-        $conexion->close();
-        ?>
+            echo $conexion->error;
+            $conexion->close();
+            ?>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
