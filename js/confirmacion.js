@@ -1,3 +1,5 @@
+// alert('el enlace está funcionando');
+
 function confirmacion(e) {
     if (confirm("¿Desea eliminar el registro indicado?")){
         return true;

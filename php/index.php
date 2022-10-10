@@ -1,9 +1,17 @@
 <?php
+require 'config/config.php';
+require_once 'config/database.php';
 
-include 'conexion.php';
+$db = new Database();
+$con = $db->conectar();
 
-$query = ("SELECT * FROM productos");
-$resultado = mysqli_query($conexion, $query) or die(mysqli_error($conexion));
+$sql = $con->prepare("SELECT codigo, nombre, precio FROM productos WHERE activo=1");
+$sql->execute();
+$resultado = $sql->fetchAll(PDO::FETCH_ASSOC);
+
+//session_destroy();
+// verifico estado de session----
+print_r($_SESSION);
 
 ?>
 <!DOCTYPE html>
@@ -13,19 +21,17 @@ $resultado = mysqli_query($conexion, $query) or die(mysqli_error($conexion));
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="stylesheet" href="../css/estilos.css">
     <title>Productos</title>
     <!-- CSS only -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
     <link rel="stylesheet" href="../css/estilos.css">
 </head>
 <header>
-    <div class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="navbar navbar-expand-lg navbar-dark bg-dark p-3">
         <div class="container">
             <a href="#" class="navbar-brand">
 
-                <strong>Tienda en Línea</strong>
+                <strong>Pinturas Una Mano</strong>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarHeader" aria-controls="navbarHeader" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -33,13 +39,14 @@ $resultado = mysqli_query($conexion, $query) or die(mysqli_error($conexion));
             <div class="collapse navbar-collapse" id="navbarHeader">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a href="#" class="nav-link active">Catálogo de productos</a>
+                        <a href="#" class="nav-link active">Catálogo</a>
                     </li>
                     <li class="nav-item">
                         <a href="#" class="nav-link">Contacto</a>
                     </li>
                 </ul>
-                <a href="carrito.php" class="btn btn-primary">Carrito</a>
+                <a href="checkout.php" class="btn btn-primary position-relative">Carrito <span id="num_cart" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    <?php echo $num_cart; ?></span> </a> 
             </div>
         </div>
     </div>
@@ -50,41 +57,39 @@ $resultado = mysqli_query($conexion, $query) or die(mysqli_error($conexion));
         <div class="container pt-4">
             <h1 class="title">Catálogo de productos</h1>
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3">
-                <?php
-                while ($row = mysqli_fetch_array($resultado)) {
-                ?>
+                <?php foreach ($resultado as $row) { ?>
                     <div class="col">
                         <div class="card shadow-sm">
-                            <img src="<?php echo $row['imagen']; ?>" class="align-self-center p-2" alt="<?php echo $row['nombre']; ?>" style="width: 200px;">
+                            <?php
+                            $codigo = $row['codigo'];
+                            $imagen = "../img/productos/" . $codigo . "/principal.webp";
+
+                            if (!file_exists($imagen)) {
+                                $imagen = "../img/sin-imagen.png";
+                            }
+                            ?>
+                            <img src="<?php echo $imagen; ?>" class="d-block w-100 align-self-center p-2" alt="<?php echo $row['nombre']; ?>" style="max-width: 200px;">
                             <div class="card-body">
                                 <h5 class="card-title"><?php echo $row['nombre']; ?></h5>
                                 <!-- el detalle se va a mostrar en un modal ------ -->
                                 <!-- <p class="card-text"><?php echo $row['detalle']; ?></p> -->
-                                <p class="card-text"><?php echo number_format($row["precio"], 2, '.', ',') ?></p>
+                                <p class="card-text"><?php echo number_format($row["precio"], 2, '.', ','); ?></p>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="btn-group">
-                                        <a href="#" class="btn btn-primary">Detalle</a>
+                                        <a href="detalles.php?codigo=<?php echo $row['codigo']; ?>&token=<?php echo hash_hmac('sha1', $row['codigo'], KEY_TOKEN); ?>" class="btn btn-primary">Detalles</a>
                                     </div>
-                                    <a href="#" class="btn btn-success">Agregar</a>
+                                    <button class="btn btn-outline-success" type="button" onclick="addProducto(<?php echo $row['codigo']; ?>, '<?php echo hash_hmac('sha1', $row['codigo'], KEY_TOKEN); ?>')">Agregar al carrito</button>
                                 </div>
                             </div>
-
                         </div>
                     </div>
-
-                <?php
-                }
-
-                if ($conexion->error != '') {
-                    echo "Ocurrió un error al ejecutar la consulta: {$conexion->error}";
-                }
-                echo $conexion->error;
-                $conexion->close();
-                ?>
+                <?php } ?>
             </div>
         </div>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.min.js" integrity="sha384-7VPbUDkoPSGFnVtYi0QogXtr74QeVeeIs99Qfg5YCF+TidwNdjvaKZX19NZ/e6oz" crossorigin="anonymous"></script>
+
+    <script src="../js/add.js"></script>
 
 </body>
