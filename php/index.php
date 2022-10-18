@@ -5,7 +5,7 @@ require_once 'config/database.php';
 $db = new Database();
 $con = $db->conectar();
 
-$sql = $con->prepare("SELECT codigo, nombre, precio FROM productos WHERE activo=1");
+$sql = $con->prepare("SELECT id, nombre, precio FROM productos WHERE activo=1");
 $sql->execute();
 $resultado = $sql->fetchAll(PDO::FETCH_ASSOC);
 
@@ -46,7 +46,7 @@ print_r($_SESSION);
                     </li>
                 </ul>
                 <a href="checkout.php" class="btn btn-primary position-relative">Carrito <span id="num_cart" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                    <?php echo $num_cart; ?></span> </a> 
+                        <?php echo $num_cart; ?></span> </a>
             </div>
         </div>
     </div>
@@ -61,8 +61,8 @@ print_r($_SESSION);
                     <div class="col">
                         <div class="card shadow-sm">
                             <?php
-                            $codigo = $row['codigo'];
-                            $imagen = "../img/productos/" . $codigo . "/principal.webp";
+                            $id = $row['id'];
+                            $imagen = "../img/productos/" . $id . "/principal.webp";
 
                             if (!file_exists($imagen)) {
                                 $imagen = "../img/sin-imagen.png";
@@ -76,9 +76,9 @@ print_r($_SESSION);
                                 <p class="card-text"><?php echo number_format($row["precio"], 2, '.', ','); ?></p>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="btn-group">
-                                        <a href="detalles.php?codigo=<?php echo $row['codigo']; ?>&token=<?php echo hash_hmac('sha1', $row['codigo'], KEY_TOKEN); ?>" class="btn btn-primary">Detalles</a>
+                                        <a href="detalles.php?id=<?php echo $row['id']; ?>&token=<?php echo hash_hmac('sha1', $row['id'], KEY_TOKEN); ?>" class="btn btn-primary">Detalles</a>
                                     </div>
-                                    <button class="btn btn-outline-success" type="button" onclick="addProducto(<?php echo $row['codigo']; ?>, '<?php echo hash_hmac('sha1', $row['codigo'], KEY_TOKEN); ?>')">Agregar al carrito</button>
+                                    <button class="btn btn-outline-success" type="button" onclick="addProducto(<?php echo $row['id']; ?>, '<?php echo hash_hmac('sha1', $row['id'], KEY_TOKEN); ?>')">Agregar al carrito</button>
                                 </div>
                             </div>
                         </div>
@@ -90,6 +90,27 @@ print_r($_SESSION);
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.min.js" integrity="sha384-7VPbUDkoPSGFnVtYi0QogXtr74QeVeeIs99Qfg5YCF+TidwNdjvaKZX19NZ/e6oz" crossorigin="anonymous"></script>
 
-    <script src="../js/add.js"></script>
+    <script>
+        function addProducto(id, token) {
+            let url = "clases/carrito.php";
+            let formData = new FormData();
+            formData.append("id", id);
+            formData.append("token", token);
+
+            fetch(url, {
+                    method: "POST",
+                    body: formData,
+                    mode: "cors",
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        let elemento = document.getElementById("num_cart");
+                        elemento.innerHTML = data.numero;
+                    }
+                });
+        }
+    </script>
 
 </body>
+
+</html>

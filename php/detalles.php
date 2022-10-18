@@ -1,26 +1,25 @@
 <?php
 require 'config/config.php';
 require_once 'config/database.php';
-
 $db = new Database();
 $con = $db->conectar();
 
-$codigo = isset($_GET['codigo']) ? $_GET['codigo'] : '';
+$id = isset($_GET['id']) ? $_GET['id'] : '';
 $token = isset($_GET['token']) ? $_GET['token'] : '';
 
-if ($codigo == '' || $token == '') {
+if ($id == '' || $token == '') {
     echo "<script>alert('Error al procesar la petición!');window.location='/php-avanzado/tienda/php'</script>";
     exit;
 } else {
-    $token_tmp = hash_hmac('sha1', $codigo, KEY_TOKEN);
+    $token_tmp = hash_hmac('sha1', $id, KEY_TOKEN);
 
     if ($token == $token_tmp) {
-        $sql = $con->prepare("SELECT count(codigo) FROM productos WHERE codigo=? AND activo=1");
-        $sql->execute([$codigo]);
+        $sql = $con->prepare("SELECT count(id) FROM productos WHERE id=? AND activo=1");
+        $sql->execute([$id]);
 
         if ($sql->fetchColumn() > 0) {
-            $sql = $con->prepare("SELECT nombre, detalle, precio, descuento FROM productos WHERE codigo=? AND activo=1 LIMIT 1");
-            $sql->execute([$codigo]);
+            $sql = $con->prepare("SELECT nombre, detalle, precio, descuento FROM productos WHERE id=? AND activo=1 LIMIT 1");
+            $sql->execute([$id]);
             $row = $sql->fetch(PDO::FETCH_ASSOC);
             $nombre = $row['nombre'];
             $detalle = $row['detalle'];
@@ -28,7 +27,7 @@ if ($codigo == '' || $token == '') {
             $descuento = $row['descuento'];
             $precio_desc = $precio - (($precio * $descuento) / 100);
 
-            $dir_img = '../img/productos/' . $codigo . '/';
+            $dir_img = '../img/productos/' . $id . '/';
             $ruta_img = $dir_img . '/principal.webp';
 
             if (!file_exists($ruta_img)) {
@@ -36,16 +35,16 @@ if ($codigo == '' || $token == '') {
             }
 
             $imagenes = array();
-            if (file_exists($dir_img)){ 
-            $dir = dir($dir_img);
+            if (file_exists($dir_img)) {
+                $dir = dir($dir_img);
 
-            while (($archivo = $dir->read()) != false) {
-                if ($archivo != 'principal.webp' && (strpos($archivo, 'webp') || strpos($archivo, 'jpg') || strpos($archivo, 'jpeg') || strpos($archivo, 'png') || strpos($archivo, 'pdf'))) {
-                    $imagenes[] = $dir_img . $archivo;
+                while (($archivo = $dir->read()) != false) {
+                    if ($archivo != 'principal.webp' && (strpos($archivo, 'webp') || strpos($archivo, 'jpg') || strpos($archivo, 'jpeg') || strpos($archivo, 'png') || strpos($archivo, 'pdf'))) {
+                        $imagenes[] = $dir_img . $archivo;
+                    }
                 }
+                $dir->close();
             }
-            $dir->close();
-        }
         }
     } else {
         echo "<script>alert('Error al procesar la petición!');window.location='/php-avanzado/tienda/php'</script>";
@@ -65,7 +64,7 @@ if ($codigo == '' || $token == '') {
     <title>Productos</title>
     <!-- CSS only -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
-    
+
 </head>
 <header>
     <div class="navbar navbar-expand-lg navbar-dark bg-dark p-3">
@@ -87,7 +86,7 @@ if ($codigo == '' || $token == '') {
                     </li>
                 </ul>
                 <a href="checkout.php" class="btn btn-primary position-relative">Carrito <span id="num_cart" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                    <?php echo $num_cart; ?></span> </a>
+                        <?php echo $num_cart; ?></span> </a>
             </div>
         </div>
     </div>
@@ -133,7 +132,7 @@ if ($codigo == '' || $token == '') {
                         <p><del><?php echo MONEDA . number_format($precio, 2, '.', ','); ?></del></p>
                         <h2>
                             <?php echo MONEDA . number_format($precio_desc, 2, '.', ','); ?>
-                            <small class="text-success"><?php echo $descuento;?>% descuento</small>
+                            <small class="text-success"><?php echo $descuento; ?>% descuento</small>
                         </h2>
                     <?php } else { ?>
                         <h2><?php echo MONEDA . number_format($precio, 2, '.', ','); ?></h2>
@@ -143,7 +142,7 @@ if ($codigo == '' || $token == '') {
                     </p>
                     <div class="d-grid gap-3 col-10 mx-auto">
                         <button class="btn btn-primary" type="button">Comprar ahora</button>
-                        <button class="btn btn-outline-primary" type="button" onclick="addProducto(<?php echo $codigo; ?>, '<?php echo $token_tmp ?>')">Agregar al carrito</button>
+                        <button class="btn btn-outline-primary" type="button" onclick="addProducto(<?php echo $id; ?>, '<?php echo $token_tmp ?>')">Agregar al carrito</button>
                     </div>
                 </div>
             </div>
@@ -152,9 +151,30 @@ if ($codigo == '' || $token == '') {
 
     </main>
 
-    <script type="text/javascript" src="../js/add.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.min.js" integrity="sha384-7VPbUDkoPSGFnVtYi0QogXtr74QeVeeIs99Qfg5YCF+TidwNdjvaKZX19NZ/e6oz" crossorigin="anonymous"></script>
 
+    <script>
+        function addProducto(id, token) {
+            let url = "clases/carrito.php";
+            let formData = new FormData();
+            formData.append("id", id);
+            formData.append("token", token);
+
+            fetch(url, {
+                    method: "POST",
+                    body: formData,
+                    mode: "cors",
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        let elemento = document.getElementById("num_cart");
+                        elemento.innerHTML = data.numero;
+                    }
+                });
+        }
+    </script>
 
 </body>
+
+</html>

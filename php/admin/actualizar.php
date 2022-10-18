@@ -1,5 +1,6 @@
 <?php
-include("conexion.php");
+include("../config/database.php");
+include("../config/config.php");
 $codigo = $_GET["codigo"];
 $productos = "SELECT * FROM productos WHERE codigo = '$codigo'";
 ?>

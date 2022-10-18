@@ -7,14 +7,14 @@ $con = $db->conectar();
 $productos = isset($_SESSION['carrito']['productos']) ? $_SESSION['carrito']['productos'] : null;
 // verifico estado de session----
 //session_destroy();
-print_r($_SESSION);
+// print_r($_SESSION);
 
 $lista_carrito = array();
 
 if ($productos != null) {
     foreach ($productos as $clave => $cantidad) {
 
-        $sql = $con->prepare("SELECT codigo, nombre, precio, descuento, $cantidad AS cantidad FROM productos WHERE codigo=? AND activo=1");
+        $sql = $con->prepare("SELECT id, nombre, precio, descuento, $cantidad AS cantidad FROM productos WHERE id=? AND activo=1");
         $sql->execute([$clave]);
         $lista_carrito[] = $sql->fetch(PDO::FETCH_ASSOC);
     }
@@ -79,7 +79,7 @@ if ($productos != null) {
                         } else {
                             $total = 0;
                             foreach ($lista_carrito as $producto) {
-                                $_id = $producto['codigo'];
+                                $_id = $producto['id'];
                                 $nombre = $producto['nombre'];
                                 $precio = $producto['precio'];
                                 $descuento = $producto['descuento'];
@@ -93,7 +93,7 @@ if ($productos != null) {
                                     <td><?php echo $nombre; ?></td>
                                     <td><?php echo MONEDA . number_format($precio_desc, 2, '.', ','); ?></td>
                                     <td>
-                                        <input type="number" min="1" step="1" value="<?php echo $cantidad ?>" size="5" id="cantidad_<?php echo $_id; ?>" onchange="actualizaCantidad(this.value, <?php echo $_id; ?>)" style="width:80px;">
+                                        <input type="number" min="1" max="100" step="1" value="<?php echo $cantidad ?>" id="cantidad_<?php echo $_id; ?>" onchange="actualizaCantidad(this.value, <?php echo $_id; ?>)">
                                     </td>
                                     <td>
                                         <div id="subtotal_<?php echo $_id; ?>" name="subtotal[]">
@@ -101,7 +101,7 @@ if ($productos != null) {
                                         </div>
                                     </td>
                                     <td>
-                                        <a href="#" id="eliminar" class="btn btn-warning btn-sm" data-bs-id="<?php echo $_id ?>" data-bs-toggle="modal" data-bs-target="eliminaModal">Eliminar</a>
+                                        <a href="#" id="eliminar" class="btn btn-warning btn-sm" data-bs-id="<?php echo $_id ?>" data-bs-toggle="modal" data-bs-target="#eliminaModal">Eliminar</a>
                                     </td>
                                 </tr>
                             <?php } ?>
@@ -117,15 +117,104 @@ if ($productos != null) {
                 <?php } ?>
                 </table>
             </div>
-            <div class="col-md-5 offset-md-7 d-grid gap-2">
-                <button class="btn btn-primary btn-lg">Realizar pago</button>
+
+            <?php if ($lista_carrito != null) { ?>
+                <div class="row">
+                    <div class="col-md-5 offset-md-7 d-grid gap-2">
+                        <a href="pago.php" class="btn btn-primary btn-lg">Realizar pago</a>
+                    </div>
+                </div>
+            <?php } ?>
+    </main>
+    <!-- Modal para eliminar artículo -->
+    <div class="modal fade" id="eliminaModal" tabindex="-1" aria-labelledby="eliminaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="eliminaModalLabel">Alerta</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Desea eliminar el producto indicado?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button id="btn-elimina" type="button" class="btn btn-danger" onclick="eliminar()">Quitar producto</button>
+                </div>
             </div>
         </div>
-    </main>
-    <script src="../js/add.js"></script>
-    <script src="../js/act.js"></script>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.min.js" integrity="sha384-7VPbUDkoPSGFnVtYi0QogXtr74QeVeeIs99Qfg5YCF+TidwNdjvaKZX19NZ/e6oz" crossorigin="anonymous"></script>
 
+    <script>
+        function actualizaCantidad(cantidad, id) {
+            let url = 'clases/act_carrito.php';
+            let formData = new FormData();
+            formData.append('action', 'agregar');
+            formData.append('id', id);
+            formData.append('cantidad', cantidad)
+
+            fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'cors'
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        let divsubtotal = document.getElementById('subtotal_' + id)
+                        divsubtotal.innerHTML = data.sub
+
+                        let total = 0.0;
+                        let list = document.getElementsByName('subtotal[]');
+
+                        for (let i = 0; i < list.length; i++) {
+                            total += parseFloat(list[i].innerHTML.replace(/[$,]/g, ''));
+                        }
+                        total = new Intl.NumberFormat('es-CR', {
+                            style: 'currency',
+                            currency: 'CRC',
+                            minimumFractionDigits: 2,
+                        }).format(total);
+                        document.getElementById('total').innerHTML =
+                            '<?php echo MONEDA; ?>' + total;
+                    }
+                });
+        }
+    </script>
+
+    <script>
+        let eliminaModal = document.getElementById('eliminaModal');
+        eliminaModal.addEventListener('show.bs.modal', function(event) {
+            let button = event.relatedTarget;
+            let id = button.getAttribute('data-bs-id');
+            let buttonElimina = eliminaModal.querySelector('.modal-footer #btn-elimina');
+            buttonElimina.value = id
+        });
+
+        function eliminar() {
+            let botonElimina = document.getElementById('btn-elimina');
+            let id = botonElimina.value;
+
+            let url = 'clases/act_carrito.php';
+            let formData = new FormData();
+            formData.append('action', 'eliminar');
+            formData.append('id', id);
+
+            fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'cors'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        location.reload();
+                    }
+                });
+        }
+    </script>
 
 </body>
+
+</html>
