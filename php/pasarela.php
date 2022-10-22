@@ -32,8 +32,6 @@ if ($productos != null) {
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Productos</title>
-    <!-- ---- paypal ----- -->
-    <script src="https://www.paypal.com/sdk/js?client-id=AXN-HewQN-MmMt5CB9Y_U3IeH6472XhysRRnraXIWG-5D3s4PXQEl-JKpA5xETIrenhae5vX5YM5bM_4&currency=USD"></script>
     <!----- sweet alert------>
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- CSS only -->
@@ -65,12 +63,12 @@ if ($productos != null) {
 </header>
 
 <body>
-    <main>        
+    <main>
         <div class="container pt-4">
             <div class="row">
                 <div class="col-6">
                     <h4>Detalle de pago</h4>
-                    <div id="paypal-button-container"></div>    
+                    <div id="paypal-button-container"></div>
                 </div>
                 <div class="col-6">
                     <div class="table-responsive">
@@ -119,12 +117,19 @@ if ($productos != null) {
                         <?php } ?>
                         </table>
                     </div>
-                    
+
                 </div>
             </div>
         </div>
     </main>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.min.js" integrity="sha384-7VPbUDkoPSGFnVtYi0QogXtr74QeVeeIs99Qfg5YCF+TidwNdjvaKZX19NZ/e6oz" crossorigin="anonymous"></script>
+
+
     <!-- script render paypal ---------------- -->
+    <script src="https://www.paypal.com/sdk/js?client-id=AXN-HewQN-MmMt5CB9Y_U3IeH6472XhysRRnraXIWG-5D3s4PXQEl-JKpA5xETIrenhae5vX5YM5bM_4&currency=USD"></script>
     <script>
         paypal.Buttons({
             style: {
@@ -132,43 +137,31 @@ if ($productos != null) {
                 shape: 'pill',
                 label: 'pay'
             },
-
-            // Sets up the transaction when a payment button is clicked
-            createOrder: (data, actions) => {
+            createOrder: function(data, actions) {
                 return actions.order.create({
                     purchase_units: [{
                         amount: {
-                            value: '77.44' // Can also reference a variable or function
+                            value: 100
                         }
                     }]
                 });
             },
             // Finalize the transaction after payer approval        
-            onApprove: (data, actions) => {
+            onApprove: function(data, actions) {
                 return actions.order.capture().then(function(orderData) {
                     // Successful capture!
                     // console.log('orderData');
-                    const transaction = orderData.purchase_units[0].payments.captures[0];
-                    alert(`Transaction ${transaction.status}: ${transaction.id}\n\nSee console for all available details`);
+                    // const transaction = orderData.purchase_units[0].payments.captures[0];
+                    // alert(`Transaction ${transaction.status}: ${transaction.id}\n\nSee console for all available details`);
                     window.location.href = "completado.php"
                 });
             },
-            onCancel: (data) => {
-                Swal.fire({
-                    position: 'top-end',
-                    icon: 'error',
-                    title: 'Acción de pago cancelada!',
-                    showConfirmButton: false,
-                    timer: 1500
-                });                
+            onCancel: function(data) {
+                alert('Acción de pago cancelada!');
                 console.log(data);
             },
         }).render('#paypal-button-container');
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.min.js" integrity="sha384-7VPbUDkoPSGFnVtYi0QogXtr74QeVeeIs99Qfg5YCF+TidwNdjvaKZX19NZ/e6oz" crossorigin="anonymous"></script>
-
 </body>
 
 </html>
